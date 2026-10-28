@@ -1,0 +1,216 @@
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.Scanner;
+ 
+public class FMP1 {
+    private static final ArrayList<Student> students = new ArrayList<>();
+    private static final Scanner scanner = new Scanner(System.in);
+ 
+    public static void main(String[] args) {
+        boolean running = true;
+ 
+        while (running) {
+            displayMenu();
+            int choice = readMenuChoice();
+ 
+            switch (choice) {
+                case 1:
+                    addStudent();
+                    break;
+                case 2:
+                    listStudents();
+                    break;
+                case 3:
+                    findStudent();
+                    break;
+                case 4:
+                    rankStudents();
+                    break;
+                case 5:
+                    removeFailingStudents();
+                    break;
+                case 0:
+                    running = false;
+                    System.out.println("Exiting Student Grade and Ranking System.");
+                    break;
+                default:
+                    System.out.println("Invalid option. Choose 0 to 5.");
+            }
+        }
+ 
+        scanner.close();
+    }
+ 
+    private static void displayMenu() {
+        System.out.println("\n=== Student Grade and Ranking System ===");
+        System.out.println("1. Add student");
+        System.out.println("2. List students");
+        System.out.println("3. Find student by ID");
+        System.out.println("4. Rank students");
+        System.out.println("5. Remove failing students");
+        System.out.println("0. Exit");
+    }
+ 
+    private static void addStudent() {
+        try {
+            int id = readInteger("Enter student ID: ");
+            String name = readNonBlank("Enter student name: ");
+ 
+            if (findById(id) != null) {
+                System.out.println("Rejected: Duplicate student ID; count remains "
+                        + students.size());
+                return;
+            }
+ 
+            System.out.print("Enter grade: ");
+            int grade = Integer.parseInt(scanner.nextLine().trim());
+ 
+            if (grade < 0 || grade > 100) {
+                System.out.println("Rejected: Grade must be from 0 to 100.");
+                return;
+            }
+ 
+            students.add(new Student(id, name, grade));
+            System.out.println("Added; count: " + students.size());
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid grade. Student not added; count remains "
+                    + students.size());
+        }
+    }
+ 
+    private static void listStudents() {
+        if (students.isEmpty()) {
+            System.out.println("No students registered.");
+            return;
+        }
+ 
+        System.out.println("Students in registration order:");
+        for (Student student : students) {
+            System.out.println(student);
+        }
+    }
+ 
+    public static Student findById(int id) {
+        for (Student student : students) {
+            if (student.getId() == id) {
+                return student;
+            }
+        }
+        return null;
+    }
+ 
+    private static void findStudent() {
+        int id = readInteger("Enter student ID to find: ");
+        Student student = findById(id);
+ 
+        if (student == null) {
+            System.out.println("Not found.");
+        } else {
+            System.out.println(student);
+        }
+    }
+ 
+    private static void rankStudents() {
+        ArrayList<Student> ranked = new ArrayList<>(students);
+ 
+        Collections.sort(ranked, new Comparator<Student>() {
+            @Override
+            public int compare(Student first, Student second) {
+                int gradeComparison = Integer.compare(
+                        second.getGrade(), first.getGrade());
+                if (gradeComparison != 0) {
+                    return gradeComparison;
+                }
+                return Integer.compare(first.getId(), second.getId());
+            }
+        });
+ 
+        if (ranked.isEmpty()) {
+            System.out.println("No students to rank.");
+            return;
+        }
+ 
+        System.out.println("Students ranked by grade descending:");
+        for (Student student : ranked) {
+            System.out.println(student);
+        }
+    }
+ 
+    private static void removeFailingStudents() {
+        Iterator<Student> iterator = students.iterator();
+        int removed = 0;
+ 
+        while (iterator.hasNext()) {
+            if (iterator.next().getGrade() < 75) {
+                iterator.remove();
+                removed++;
+            }
+        }
+ 
+        System.out.println("Removed failing students: " + removed
+                + "; count: " + students.size());
+    }
+ 
+    private static int readMenuChoice() {
+        while (true) {
+            int choice = readInteger("Choose an option: ");
+            if (choice >= 0 && choice <= 5) {
+                return choice;
+            }
+            System.out.println("Invalid option. Choose 0 to 5.");
+        }
+    }
+ 
+    private static int readInteger(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            try {
+                return Integer.parseInt(scanner.nextLine().trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a whole number.");
+            }
+        }
+    }
+ 
+    private static String readNonBlank(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String input = scanner.nextLine().trim();
+            if (!input.isEmpty()) {
+                return input;
+            }
+            System.out.println("Name cannot be blank.");
+        }
+    }
+}
+ 
+class Student {
+    private final int id;
+    private final String name;
+    private final int grade;
+ 
+    public Student(int id, String name, int grade) {
+        this.id = id;
+        this.name = name;
+        this.grade = grade;
+    }
+ 
+    public int getId() {
+        return id;
+    }
+ 
+    public String getName() {
+        return name;
+    }
+ 
+    public int getGrade() {
+        return grade;
+    }
+ 
+    @Override
+    public String toString() {
+        return "ID: " + id + " | Name: " + name + " | Grade: " + grade;
+    }
+}
